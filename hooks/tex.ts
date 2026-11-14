@@ -26,13 +26,15 @@ const script = (g: string, map: Record<string, string>) => [...g].every(c => map
 
 // ponytail: regex passes, no parser; deeply nested braces (x^{y_{i}}) stay partly raw.
 export function toUnicode(tex: string): string {
-  let s = tex.replace(/\\(?:left|right)\s*\./g, '').replace(/\\(?:left|right)(?![a-zA-Z])/g, '')
+  let s = tex.replace(/\\[td]?frac(?![a-zA-Z])\s*(\w)\s*(\w)/g, '\\frac{$1}{$2}').replace(/\\[td]frac(?![a-zA-Z])/g, '\\frac').replace(/\\(?:left|right)\s*\./g, '').replace(/\\(?:left|right)(?![a-zA-Z])/g, '')
   for (let p = ''; p !== s; ) { // innermost wrapper first, repeat for nesting
     p = s
-    s = s.replace(/\\(?:mathrm|mathbf|mathsf|mathit|boldsymbol|text|operatorname)\{([^{}]*)\}/g, '$1')
+    s = s.replace(/\\(?:mathrm|mathbf|mathsf|mathit|mathcal|mathscr|mathfrak|boldsymbol|bm|text|operatorname)\{([^{}]*)\}/g, '$1')
   }
+  s = s.replace(/\\(?:mathrm|mathbf|mathsf|mathit|mathcal|mathscr|mathfrak|boldsymbol|bm)\s*(\w)/g, '$1') // unbraced: \mathbf p
+  s = s.replace(/\\(?:mathbf|boldsymbol|bm)\s*(?=\\[a-zA-Z])/g, '') // \boldsymbol\alpha
   s = s.replace(/\\\$/g, '$').replace(/\\\{/g, '\u0001').replace(/\\\}/g, '\u0002') // escaped $ { } are literal
-  s = s.replace(/\\mathbb\{(\w)\}/g, (a, c) => BB[c] ?? c)
+  s = s.replace(/\\mathbb\s*(?:\{(\w)\}|(\w))/g, (a, b, c) => BB[b ?? c] ?? b ?? c)
   s = s.replace(/\\([a-zA-Z]+|[,;:!])/g, (a, n) => SYM[n] ?? a)
   s = s.replace(/([\^_])(?:\{([^{}]*)\}|(.))/g, (a, op, br, ch) => {
     const g: string = br ?? ch
