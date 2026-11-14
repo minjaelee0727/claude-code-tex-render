@@ -1,0 +1,7 @@
+{
+  "name": "tex-render",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "Draws LaTeX math in replies: display formulas as images, inline math as Unicode.",
+  "types": "./types/index.d.ts"
+}

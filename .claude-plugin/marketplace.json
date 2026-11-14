@@ -1,0 +1,5 @@
+{
+  "name": "tex-render",
+  "owner": { "name": "minjaelee0727" },
+  "plugins": [{ "name": "tex-render", "source": "./" }]
+}
