@@ -26,7 +26,7 @@ const script = (g: string, map: Record<string, string>) => [...g].every(c => map
 
 // ponytail: regex passes, no parser; deeply nested braces (x^{y_{i}}) stay partly raw.
 export function toUnicode(tex: string): string {
-  let s = tex.replace(/\\[td]?frac(?![a-zA-Z])\s*(\w)\s*(\w)/g, '\\frac{$1}{$2}').replace(/\\[td]frac(?![a-zA-Z])/g, '\\frac').replace(/\\(?:left|right)\s*\./g, '').replace(/\\(?:left|right)(?![a-zA-Z])/g, '')
+  let s = tex.replace(/\\[td]?frac(?![a-zA-Z])\s*(\w)\s*(\w)/g, '\\frac{$1}{$2}').replace(/\\[td]frac(?![a-zA-Z])/g, '\\frac').replace(/\\(?:[bB]igg?[lrm]?|middle|displaystyle|textstyle|limits|nolimits)(?![a-zA-Z])/g, '').replace(/\\(?:left|right)\s*\./g, '').replace(/\\(?:left|right)(?![a-zA-Z])/g, '')
   for (let p = ''; p !== s; ) { // innermost wrapper first, repeat for nesting
     p = s
     s = s.replace(/\\(?:mathrm|mathbf|mathsf|mathit|mathcal|mathscr|mathfrak|boldsymbol|bm|text|operatorname)\{([^{}]*)\}/g, '$1')
