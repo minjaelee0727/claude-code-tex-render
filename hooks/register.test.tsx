@@ -15,6 +15,8 @@ test('toUnicode', async () => {
   expect(toUnicode('\\alpha_t')).toBe('αₜ')
   expect(toUnicode('\\mathbb{E}_{p}')).toBe('𝔼ₚ')
   expect(toUnicode('\\frac{1}{2}')).toBe('1/2')
+  expect(toUnicode('p_{i,t+1} = \\dfrac{p_{it}\\,e^{-\\alpha_t y_i}}{Z_t}')).toBe('pᵢ,ₜ₊₁ = (pᵢₜ e^(-αₜ yᵢ))/Zₜ')
+  expect(toUnicode('\\operatorname{sign}\\big(\\mathbf p\\big)')).toBe('sign(p)')
   expect(toUnicode('e^{-\\alpha}')).toBe('e^(-α)')
 })
 

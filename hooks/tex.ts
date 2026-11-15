@@ -22,7 +22,8 @@ const SUP = Object.fromEntries([...'0123456789+-=()ni'].map((c, i) => [c, [...'�
 const SUB = Object.fromEntries([...'0123456789+-=()aeoxhklmnpstijruv'].map((c, i) => [c, [...'₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₒₓₕₖₗₘₙₚₛₜᵢⱼᵣᵤᵥ'][i]!]))
 
 const SCRIPTS = [...Object.values(SUP), ...Object.values(SUB)]
-const script = (g: string, map: Record<string, string>) => [...g].every(c => map[c]) ? [...g].map(c => map[c]).join('') : null
+const sc = (c: string, map: Record<string, string>) => map[c] ?? (c === ',' ? c : undefined) // commas stay: pᵢ,ₜ₊₁
+const script = (g: string, map: Record<string, string>) => [...g].every(c => sc(c, map)) ? [...g].map(c => sc(c, map)).join('') : null
 
 // ponytail: regex passes, no parser; deeply nested braces (x^{y_{i}}) stay partly raw.
 export function toUnicode(tex: string): string {
@@ -36,11 +37,13 @@ export function toUnicode(tex: string): string {
   s = s.replace(/\\\$/g, '$').replace(/\\\{/g, '\u0001').replace(/\\\}/g, '\u0002') // escaped $ { } are literal
   s = s.replace(/\\mathbb\s*(?:\{(\w)\}|(\w))/g, (a, b, c) => BB[b ?? c] ?? b ?? c)
   s = s.replace(/\\([a-zA-Z]+|[,;:!])/g, (a, n) => SYM[n] ?? a)
-  s = s.replace(/([\^_])(?:\{([^{}]*)\}|(.))/g, (a, op, br, ch) => {
-    const g: string = br ?? ch
-    return script(g, op === '^' ? SUP : SUB) ?? (br === undefined ? a : `${op}(${g})`)
-  })
-  const one = (x: string) => (/^[\w.]+$/.test(x) ? x : `(${x})`)
+  const scripts = (re: RegExp) => (s = s.replace(re, (a, op, br, ch) => {
+    const g: string = br || ch // one of the two groups is empty
+    return script(g, op === '^' ? SUP : SUB) ?? (ch ? a : `${op}(${g})`)
+  }))
+  scripts(/([\^_])()([^{\s])/g) // single-char scripts first, so x_t inside e^{...} converts too
+  for (let p = ''; p !== s; ) { p = s; scripts(/([\^_])\{([^{}]*)\}()/g) } // then braced, innermost first
+  const one = (x: string) => (/^[^\s+\-*/=(),]+$/u.test(x) ? x : `(${x})`) // Zₜ, αᵢ, 2 are single tokens
   for (let p = ''; p !== s; ) {
     p = s
     s = s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, (a, n, d, i: number, all: string) => {
